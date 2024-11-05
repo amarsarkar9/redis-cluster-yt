@@ -1,0 +1,53 @@
+
+services:
+  redismaster-cluster:
+    restart: unless-stopped
+    build: 
+      context: ./master
+      args:
+        - CLUSTER_ANNOUNCE_IP=10.80.0.148
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data/
+      - type: bind
+        source: ./redislogs/
+        target: /var/log/redis/
+    user: 1001:1001
+    ports:
+      - 6379:6379
+      - 16379:16379
+    environment:
+      - REDIS_PASSWORD=Txz0xGkb4ga3QIXwTIPBI3MDcEx0AtYW
+    networks:
+      - redis_cluster
+    sysctls:
+      net.core.somaxconn: 4096
+
+  redismaster-slave:
+    restart: unless-stopped
+    build: 
+      context: ./slave
+      args:
+        - CLUSTER_ANNOUNCE_IP=10.80.0.148
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data/
+      - type: bind
+        source: ./redislogs/
+        target: /var/log/redis/
+    user: 1001:1001
+    ports:
+      - 6380:6379
+      - 16380:16380
+    environment:
+      - REDIS_PASSWORD=Txz0xGkb4ga3QIXwTIPBI3MDcEx0AtYW
+    networks:
+      - redis_cluster
+    sysctls:
+      net.core.somaxconn: 4096
+
+networks:
+  redis_cluster:
+    driver: bridge
